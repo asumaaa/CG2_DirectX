@@ -9,6 +9,9 @@
 #include <DirectXMath.h>
 #include <dinput.h>
 #include <d3dcompiler.h>
+#include <math.h>
+
+#define PI 3.141592653589
 
 using namespace DirectX;
 
@@ -243,6 +246,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{-0.5f,+0.5f,0.0f},//左上
 		{+0.5f,-0.5f,0.0f},//右下
 	};
+
+	float TransformX = 0.0f;
+	float TransformY = 0.0f;
+	float rotation = 0.0f;
+	float scale = 1.0f;
+
+	float affine[3][3] =
+	{
+		{1.0f,0.0f,0.0f},
+		{0.0f,1.0f,0.0f},
+		{0.0f,0.0f,0.0f},
+	};
 	//頂点データの全体のサイズ = 頂点データ一つ分のサイズ * 頂点データの要素数
 	UINT sizeVB = static_cast<UINT>(sizeof(XMFLOAT3) * _countof(vertices));
 	//頂点バッファの設定
@@ -274,11 +289,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	XMFLOAT3* vertMap = nullptr;
 	result = vertBuff->Map(0, nullptr, (void**)&vertMap);
 	assert(SUCCEEDED(result));
-	//全頂点に対して
-	for (int i = 0; i < _countof(vertices); i++)
-	{
-		vertMap[i] = vertices[i];	//座標をコピー
-	}
+
+	////全頂点に対して
+	//for (int i = 0; i < _countof(vertices); i++)
+	//{
+	//	vertMap[i] = vertices[i];	//座標をコピー
+	//}
+
 	//繋がりを解除
 	vertBuff->Unmap(0, nullptr);
 
@@ -457,13 +474,76 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		keyboard->Acquire();
 
 		//全キーの入力状態を取得する
-		BYTE key[256] = {};
-		keyboard->GetDeviceState(sizeof(key), key);
+		BYTE keys[256] = {};
+		keyboard->GetDeviceState(sizeof(keys), keys);
 
-		//数字の0キーが押されていたら
-		if (key[DIK_0])
+		TransformX = 0.0f;
+		TransformY = 0.0f;
+		rotation = 0.0f;
+		scale = 1.0f;
+
+		//キー入力
+		if (keys[DIK_W])
 		{
-			OutputDebugStringA("Hit 0\n");
+			TransformY += 0.05;
+		}
+		if (keys[DIK_S])
+		{
+			TransformY -= 0.05;
+		}
+		if (keys[DIK_D])
+		{
+			TransformX += 0.05;
+		}
+		if (keys[DIK_A])
+		{
+			TransformX -= 0.05;
+		}
+
+		if (keys[DIK_Z])
+		{
+			scale += 0.01;
+		}
+		if (keys[DIK_C])
+		{
+			scale -= 0.01;
+		}
+
+		if (keys[DIK_Q])
+		{
+			rotation += PI/32;
+		}
+		if (keys[DIK_E])
+		{
+			rotation -= PI/32;
+		}
+
+		//アフィン行列の生成
+		affine[0][0] = scale * cos(rotation);
+		affine[0][1] = scale * -sin(rotation);
+		affine[0][2] = TransformX;
+
+		affine[1][0] = scale * sin(rotation);
+		affine[1][1] = scale * cos(rotation);
+		affine[1][2] = TransformY;
+
+		affine[2][0] = 0.0f;
+		affine[2][1] = 0.0f;
+		affine[2][2] = 0.0f;
+
+		//アフィン変換
+		for (int i = 0; i < _countof(vertices); i++)
+		{
+			vertices[i].x = vertices[i].x * affine[0][0] + vertices[i].y * affine[0][1] + 1.0f * affine[0][2];
+			vertices[i].y = vertices[i].x * affine[1][0] + vertices[i].y * affine[1][1] + 1.0f * affine[1][2];
+			vertices[i].z = vertices[i].x * affine[2][0] + vertices[i].y * affine[2][1] + 1.0f * affine[2][2];
+		}
+
+
+		//全頂点に対して
+		for (int i = 0; i < _countof(vertices); i++)
+		{
+			vertMap[i] = vertices[i];	//座標をコピー
 		}
 
 		// バックバッファの番号を取得(2つなので0番か1番) 
@@ -485,7 +565,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		// 3.　画面クリア		R	  G     B    A
 		FLOAT clearColor[] = { 0.1f,0.25f, 0.5f,0.0f };
-		if (key[DIK_SPACE])
+		if (keys[DIK_SPACE])
 		{
 			clearColor[0] = 0.5;	//スペースキーが押されていたら色を変える
 		}
