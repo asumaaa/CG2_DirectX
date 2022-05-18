@@ -629,7 +629,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		//描画コマンド
 		//commandList->DrawInstanced(6/*_countof(vertices)*/, 1, 0, 0);//全ての頂点を使って描画
-		commandList->DrawIndexedInstanced(_countof(vertices), 1, 0, 0, 0);//全ての頂点を使って描画
+		commandList->DrawIndexedInstanced(_countof(indices), 1, 0, 0, 0);//全ての頂点を使って描画
 
 
 		// 4 . 描画コマンドはここまで
