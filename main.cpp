@@ -244,6 +244,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{+0.5f,-0.5f,0.0f},//右下
 		{+0.5f,+0.5f,0.0f},//右上
 	};
+
+	//インデックスデータ
+	uint16_t indices[] =
+	{
+		0,1,2,	//三角形1つ目
+		1,2,3,	//三角形2つ目
+	};
 	//頂点データの全体のサイズ = 頂点データ一つ分のサイズ * 頂点データの要素数
 	UINT sizeVB = static_cast<UINT>(sizeof(XMFLOAT3) * _countof(vertices));
 	//頂点バッファの設定
@@ -595,6 +602,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ビューポート設定コマンドを、コマンドリストに頼む
 		commandList->RSSetViewports(1, &viewport);
 
+		//インデックスバッファビューの設定コマンド
+		commandList->IASetIndexBuffer(&ibView);
+
 		//シザー矩形
 		D3D12_RECT scissorRect{};
 		scissorRect.left = 0;									//切り抜き座標左
@@ -609,7 +619,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		commandList->SetGraphicsRootSignature(rootSignature);
 
 		//プリミティブ形状の設定コマンド
-		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);	//三角形リスト
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	//三角形リスト
 
 		//頂点バッファビューの設定コマンド
 		commandList->IASetVertexBuffers(0, 1, &vbView);
@@ -618,7 +628,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		commandList->SetGraphicsRootConstantBufferView(0, constBuffMaterial->GetGPUVirtualAddress());
 
 		//描画コマンド
-		commandList->DrawInstanced(6/*_countof(vertices)*/, 1, 0, 0);//全ての頂点を使って描画
+		//commandList->DrawInstanced(6/*_countof(vertices)*/, 1, 0, 0);//全ての頂点を使って描画
+		commandList->DrawIndexedInstanced(_countof(vertices), 1, 0, 0, 0);//全ての頂点を使って描画
 
 
 		// 4 . 描画コマンドはここまで
