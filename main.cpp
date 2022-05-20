@@ -39,7 +39,6 @@ LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	MSG msg{};
-
 	//‰Šú‰»ˆ—
 
 #ifdef _DEBUG
